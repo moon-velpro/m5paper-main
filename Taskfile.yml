@@ -1,0 +1,65 @@
+version: '3'
+
+vars:
+  IDF_PATH: ~/esp/esp-idf-v5.3
+  HW_DIR: m5paper_hw
+  PORT: /dev/cu.usbmodem101
+  IDF_PYTHON: ~/.espressif/python_env/idf5.3_py3.11_env/bin/python
+
+tasks:
+  set-target:
+    desc: Set ESP-IDF target to ESP32-S3
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && rm -f sdkconfig && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py set-target esp32s3'
+
+  build:
+    desc: Build the M5Paper firmware for ESP32-S3
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && rm -f sdkconfig && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py set-target esp32s3'
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py reconfigure build'
+
+  flash:
+    desc: Build and flash firmware to M5Paper S3
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && rm -f sdkconfig && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py set-target esp32s3'
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py -p {{.PORT}} build flash'
+
+  monitor:
+    desc: Open serial monitor
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py -p {{.PORT}} monitor'
+
+  flash-monitor:
+    desc: Build, flash, and open serial monitor
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && rm -f sdkconfig && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py set-target esp32s3'
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py -p {{.PORT}} build flash monitor'
+
+  menuconfig:
+    desc: Open ESP-IDF menuconfig for ESP32-S3
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && rm -f sdkconfig && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py set-target esp32s3'
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py menuconfig'
+
+  backend:
+    desc: Start the backend server on port 8090
+    dir: backend
+    cmds:
+      - .venv/bin/uvicorn main:app --host 0.0.0.0 --port 8090 --reload
+
+  package-release:
+    desc: Package prebuilt firmware into a user-facing release bundle
+    cmds:
+      - python tools/package_release.py --chip esp32s3
+
+  clean:
+    desc: Clean build artifacts
+    dir: "{{.HW_DIR}}"
+    cmds:
+      - bash -c 'export IDF_PATH={{.IDF_PATH}} && {{.IDF_PYTHON}} {{.IDF_PATH}}/tools/idf.py fullclean'

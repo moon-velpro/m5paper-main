@@ -1,0 +1,44 @@
+M5Paper 中文完整版使用说明
+
+一、这版包含什么
+1. 设备端：
+   - 未配置时自动开启热点 M5Paper-Setup
+   - 手机连接热点后，浏览器打开 http://192.168.4.1
+   - 可配置 Wi-Fi、后端地址、家庭地址、天气地址、路线起终点、刷新间隔
+   - 配置保存在 NVS，后续开机自动联网
+
+2. 后端：
+   - /admin 中文配置页
+   - /dashboard 实时天气 JSON
+   - 天气使用 Open-Meteo 真数据
+   - 路线/地铁可选使用高德 Web 服务 Key
+
+3. 模拟器：
+   - 中文界面预览
+   - 读取本地后端 /dashboard
+
+二、后端启动
+1. 进入 backend 目录
+2. 安装依赖：
+   pip install -r requirements.txt
+3. 启动：
+   uvicorn main:app --host 0.0.0.0 --port 8090
+4. 浏览器打开：
+   http://你的电脑IP:8090/admin
+
+三、设备烧录
+1. 复制 m5paper_hw/main/secrets.h.example 为 secrets.h
+2. 把 API_URL 默认值改成你的后端地址，例如：
+   http://192.168.1.100:8090/dashboard
+3. 编译并烧录
+4. 首次启动如果没有配置，会自动进入热点配置模式
+
+四、热点配置
+热点名：M5Paper-Setup
+密码：12345678
+配置页地址：192.168.4.1
+
+五、当前限制
+1. 天气是真数据，来自 Open-Meteo
+2. 路线/地铁需要你在后台 /admin 填入高德 Web 服务 Key 才会显示真实方案
+3. 设备端 C++ 代码没有在当前环境做实机编译验证，建议烧录前先在你本地 ESP-IDF 环境编译一次

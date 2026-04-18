@@ -1,0 +1,20 @@
+# M5PaperS3 board configuration
+# Flash: 16MB
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
+
+# PSRAM: 8MB OPI (required by M5PaperS3)
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+
+# Partition table: explicit 16MB layout with 4MB factory app slot
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Release builds should optimize for size
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+
+# Mobile browsers can send large headers even to the local setup portal.
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=4096
+CONFIG_HTTPD_MAX_URI_LEN=1024

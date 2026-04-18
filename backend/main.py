@@ -21,6 +21,7 @@ from pydantic import BaseModel
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 LOCAL_TZ = ZoneInfo(os.getenv("TIMEZONE", "Asia/Shanghai"))
 CONFIG_PATH = Path(os.getenv("CONFIG_FILE", Path(__file__).with_name("dashboard_config.json")))
@@ -366,15 +367,33 @@ async def resolve_weather_coordinates(
     if cfg.weather_latitude is not None and cfg.weather_longitude is not None:
         return cfg.weather_latitude, cfg.weather_longitude
 
-    for candidate in (weather_address, home_address, cfg.weather_address, cfg.home_address):
+    candidates: list[str] = []
+    seen: set[str] = set()
+    for raw_candidate in (weather_address, home_address, cfg.weather_address, cfg.home_address):
+        candidate = clean_text(raw_candidate)
         if not candidate:
             continue
+        if candidate in seen:
+            continue
+        seen.add(candidate)
+        candidates.append(candidate)
+
+    for candidate in candidates:
         parsed = parse_coordinate_text(candidate)
         if parsed is not None:
             return parsed
         resolved = await geocode_with_open_meteo(candidate)
         if resolved is not None:
             return resolved
+
+    if cfg.amap_api_key:
+        for candidate in candidates:
+            resolved = await amap_geocode(candidate, cfg.amap_api_key, cfg.city)
+            if resolved is None:
+                continue
+            longitude, latitude_text = resolved
+            return float(latitude_text), float(longitude)
+
     return None
 
 
